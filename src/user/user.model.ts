@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { User } from './user.interface';
+import { Bundle } from './bundle.interface';
 
 export type UserDocument = UserModel & Document;
 
@@ -17,6 +18,9 @@ export class UserModel implements User {
 
   @Prop({ required: true })
   salt: string;
+
+  @Prop()
+  bundle: Bundle<string>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
