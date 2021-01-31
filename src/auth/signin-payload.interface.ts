@@ -11,11 +11,12 @@ export class SignInPayload implements Pick<User, 'password' | 'email'> {
   @IsNotEmpty()
   @IsString()
   @IsEmail()
+  @MaxLength(100)
   email: string;
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(4)
-  @MaxLength(20)
+  @MinLength(8)
+  @MaxLength(50)
   password: string;
 }

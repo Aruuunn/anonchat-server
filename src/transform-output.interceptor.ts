@@ -16,7 +16,7 @@ export class TransformOutputInterceptor<T>
   implements NestInterceptor<T, Response<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    const newAccessToken = request.newAccessToken;
-    return next.handle().pipe(map((data) => ({ data, newAccessToken })));
+    const accessToken = request.newAccessToken;
+    return next.handle().pipe(map((data) => ({ data, accessToken })));
   }
 }

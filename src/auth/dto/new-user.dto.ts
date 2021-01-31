@@ -6,22 +6,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { SignInPayload } from '../signin-payload.interface';
 
-export class NewUserDto implements Omit<User, 'password' | 'salt'> {
+export class NewUserDto
+  extends SignInPayload
+  implements Omit<User, 'password' | 'salt'> {
   @IsNotEmpty()
   @IsString()
   @MaxLength(100)
   @MinLength(2)
   name: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsEmail()
-  email: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(4)
-  @MaxLength(20)
-  password: string;
 }

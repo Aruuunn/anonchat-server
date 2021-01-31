@@ -46,7 +46,7 @@ export class AuthController {
     );
 
     res.cookie('refreshToken', refreshToken);
-    res.send({ user: getUserData(user), accessToken });
+    res.send({ data: { user: getUserData(user) }, accessToken });
   }
 
   @Post('sign-up')
@@ -60,7 +60,7 @@ export class AuthController {
         payload,
       );
       res.cookie('refreshToken', refreshToken);
-      res.send({ user: getUserData(user), accessToken });
+      res.send({ data: { user: getUserData(user) }, accessToken });
     } catch (e) {
       if (e?.code === 11000) {
         throw new BadRequestException(
