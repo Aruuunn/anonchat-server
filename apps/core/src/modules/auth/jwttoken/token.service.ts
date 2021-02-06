@@ -6,8 +6,7 @@ import * as jwt from 'jsonwebtoken';
  *  Has to be used only after overriding the two protected fields!
  * */
 export class TokenService {
-  protected TOKEN_SECRET = 'You have to override this using inheritance!';
-  protected TOKEN_EXPIRES_IN = 'You have to override this also!';
+  constructor(private TOKEN_SECRET: string, private TOKEN_EXPIRES_IN: string) {}
 
   generateTokenUsingEmail(email: string): string {
     const payload: JwtPayload = { email };

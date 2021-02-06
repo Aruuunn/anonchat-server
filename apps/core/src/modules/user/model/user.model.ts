@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { User } from '../interfaces/user.interface';
 import { Bundle } from '../interfaces/bundle.interface';
-import { BundleDto } from '../dto/bundle.dto';
 
 @Schema()
 export class UserModel extends Document implements User {
@@ -18,7 +17,7 @@ export class UserModel extends Document implements User {
   @Prop({ required: true })
   salt: string;
 
-  @Prop({ type: [BundleDto] })
+  @Prop({ type: [Object] })
   bundles: Bundle<string>[];
 }
 

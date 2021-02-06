@@ -57,8 +57,9 @@ export class AuthController {
       res.send({ data: { user: filterPropertiesOfUser(user) }, accessToken });
     } catch (e) {
       if (e instanceof EmailOrPasswordWrongError) {
-        throw new BadRequestException();
+        throw new BadRequestException('Email or password is wrong');
       } else {
+        console.log(e);
         throw new InternalServerErrorException();
       }
     }
@@ -82,6 +83,7 @@ export class AuthController {
           'Account with the given Email Already Exist. Try Sign-in',
         );
       } else {
+        console.log(e);
         throw new InternalServerErrorException();
       }
     }
