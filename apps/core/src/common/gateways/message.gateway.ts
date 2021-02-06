@@ -1,50 +1,31 @@
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
   WsResponse,
 } from '@nestjs/websockets';
-import { Socket, Client, Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { WsGuard } from '../../modules/auth/gaurds/websocket/ws.guard';
 import { UserModel } from '../../modules/user/model/user.model';
 import { BadRequestWsException } from '../websockets/exceptions/ws-exception';
-
-export enum Events {
-  CONNECT_USER = 'CONNECT_USER',
-  SEND_MESSAGE = 'SEND_MESSAGE',
-  RECEIVED_MESSAGE = 'RECEIVED_MESSAGE',
-  CREATE_SELF_ROOM = 'CREATE_SELF_ROOM',
-  JOIN_ROOM = 'JOIN_ROOM',
-  NEW_ACCESS_TOKEN = 'NEW_ACCESS_TOKEN',
-}
+import { isTruthy } from '../../utils/is-truthy.util';
+import ALLOWED_ORIGINS from '../../config/allowed-origins.config';
+import { Events } from '../websockets/enum/ws-events.enum';
 
 @WebSocketGateway(undefined, {
   transports: ['websocket', 'polling'],
   cookie: true,
-  origins: 'http://localhost:4200',
+  origins: ALLOWED_ORIGINS,
   allowUpgrades: true,
 })
-export class MessageGateway
-  implements OnGatewayConnection, OnGatewayDisconnect {
+export class MessageGateway {
   private logger = new Logger('MessageGateway');
 
   @WebSocketServer()
   private server: Server;
-
-  private isTruthy(value: any): boolean {
-    return value !== null && typeof value !== 'undefined';
-  }
-
-  private generateSelfRoomName(user: UserModel): string {
-    return user._id;
-  }
 
   private generateRoomName(userId1: string, userId2: string): string {
     return userId1 > userId2 ? userId2 + userId1 : userId1 + userId2;
@@ -75,21 +56,13 @@ export class MessageGateway
     return user;
   }
 
-  handleConnection(client: Client): void {
-    this.logger.log(`Connected - ${client.id}`);
-  }
-
-  handleDisconnect(client: Client): void {
-    this.logger.log(`Disconnected - ${client.id}`);
-  }
-
   @UseGuards(WsGuard)
   @SubscribeMessage(Events.CREATE_SELF_ROOM)
   createSelfRoom(@ConnectedSocket() socket: Socket): void {
     const user = this.getUser(socket);
-    this.logger.log(`created self room for user - ${user._id}`);
-    socket.join(user._id);
-    return user._id;
+    this.logger.log(`created self room for user - ${user.id}`);
+    socket.join(user.id);
+    return user.id;
   }
 
   @UseGuards(WsGuard)
@@ -108,7 +81,7 @@ export class MessageGateway
     @MessageBody() { userId }: { userId: string },
   ): { roomName: string } {
     const user: UserModel = this.getUser(client);
-    const roomName = this.generateRoomName(user._id, userId.trim());
+    const roomName = this.generateRoomName(user.id, userId.trim());
     this.joinRoom(roomName, client, user);
     this.server.in(userId.trim()).emit(Events.CONNECT_USER, { roomName });
     return { roomName };
@@ -129,20 +102,20 @@ export class MessageGateway
   @UseGuards(WsGuard)
   @SubscribeMessage(Events.SEND_MESSAGE)
   sendMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() socket: Socket,
     @MessageBody() payload: { to: string; message: unknown },
   ): void {
-    const user = this.getUser(client);
+    const user = this.getUser(socket);
 
-    if (!this.isTruthy(payload.message) || !this.isTruthy(payload.to)) {
+    if (!isTruthy(payload.message) || !isTruthy(payload.to)) {
       throw new BadRequestWsException(
         'userId to send message (to) / message not provided',
       );
     }
 
-    const roomName = this.generateRoomName(user._id, payload.to.trim());
-    const data = { from: user._id, ...payload, roomName };
+    const roomName = this.generateRoomName(user.id, payload.to.trim());
+    const data = { from: user.id, ...payload, roomName };
 
-    client.to(roomName).emit(Events.RECEIVED_MESSAGE, data);
+    socket.to(roomName).emit(Events.RECEIVED_MESSAGE, data);
   }
 }

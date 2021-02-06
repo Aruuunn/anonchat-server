@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { MongooseModuleOptions } from '@nestjs/mongoose';
+import { Modes } from '../common/enum/modes.enum';
 
 config();
 
@@ -8,12 +9,12 @@ export const TEST_URI = process.env.TEST_URI;
 export const PRODUCTION_URI = process.env.PRODUCTION_URI;
 
 function getConnectionURI(): string {
-  switch (process.env.NODE_ENV || 'development') {
-    case 'production':
+  switch (process.env.NODE_ENV) {
+    case Modes.PRODUCTION:
       return PRODUCTION_URI;
-    case 'development':
+    case Modes.DEVELOPMENT:
       return DEV_URI;
-    case 'testing':
+    case Modes.TESTING:
       return TEST_URI;
     default:
       throw new Error(`Unexpected NODE_ENV provided: ${process.env.NODE_ENV} `);

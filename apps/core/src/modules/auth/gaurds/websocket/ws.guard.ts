@@ -1,10 +1,10 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
-import { parse as parseCookies } from 'cookie';
 import { Socket } from 'socket.io';
-import { isValidJwt } from '../../../../utils/is-valid-jwt';
-import { Events } from '../../../../common/gateways/message.gateway';
-import { UnAuthorizedWsException } from '../../../../common/websockets/exceptions/ws-exception';
+import { parse as parseCookies } from 'cookie';
 import { AuthGuard } from '../http/auth.guard';
+import { isValidJwt } from '../../../../utils/is-valid-jwt';
+import { UnAuthorizedWsException } from '../../../../common/websockets/exceptions/ws-exception';
+import { Events } from '../../../../common/websockets/enum/ws-events.enum';
 
 @Injectable()
 export class WsGuard extends AuthGuard {
