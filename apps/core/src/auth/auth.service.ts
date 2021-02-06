@@ -1,40 +1,27 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { NewUserDto } from './dto/new-user.dto';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './jwt-payload';
 import { SignInPayload } from './signin-payload.interface';
 import { RefreshTokenService } from './refresh-token.service';
-import { UserDocument } from '../user/user.model';
+import { UserModel } from '../user/user.model';
+import { AccessTokenService } from './access-token.service';
 
 export interface UserDataWithTokens {
-  user: UserDocument;
+  user: UserModel;
   accessToken: string;
   refreshToken: string;
 }
+
+export class EmailOrPasswordWrongError extends Error {}
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
-    private jwtService: JwtService,
+    private accessTokenService: AccessTokenService,
     private refreshTokenService: RefreshTokenService,
   ) {}
-
-  private generateAccessTokenUsingEmail(email: string): string {
-    const payload: JwtPayload = { email };
-    return this.jwtService.sign(payload);
-  }
-
-  getJwtPayloadFromToken(token: string): JwtPayload {
-    return this.jwtService.decode(token) as JwtPayload;
-  }
-
-  generateAccessTokenUsingRefreshToken(refreshToken: string): string {
-    const { email } = this.refreshTokenService.verify(refreshToken);
-    return this.generateAccessTokenUsingEmail(email);
-  }
 
   async signUp(userData: NewUserDto): Promise<UserDataWithTokens> {
     const salt = genSaltSync(10);
@@ -44,8 +31,10 @@ export class AuthService {
       password: hashSync(userData.password, salt),
     });
 
-    const accessToken = this.generateAccessTokenUsingEmail(newUser.email);
-    const refreshToken = this.refreshTokenService.generateRefreshTokenUsingEmail(
+    const accessToken = this.accessTokenService.generateTokenUsingEmail(
+      newUser.email,
+    );
+    const refreshToken = this.refreshTokenService.generateTokenUsingEmail(
       newUser.email,
     );
 
@@ -57,11 +46,13 @@ export class AuthService {
     const user = await this.userService.findUserUsingEmail(email);
 
     if (!user || !compareSync(password, user?.password)) {
-      throw new BadRequestException('Email/Password is wrong');
+      throw new EmailOrPasswordWrongError('Email/Password is wrong');
     }
 
-    const accessToken = this.generateAccessTokenUsingEmail(user.email);
-    const refreshToken = this.refreshTokenService.generateRefreshTokenUsingEmail(
+    const accessToken = this.accessTokenService.generateTokenUsingEmail(
+      user.email,
+    );
+    const refreshToken = this.refreshTokenService.generateTokenUsingEmail(
       user.email,
     );
     return { user, accessToken, refreshToken };

@@ -12,18 +12,24 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { SignInPayload } from './signin-payload.interface';
-import { AuthService } from './auth.service';
+import { AuthService, EmailOrPasswordWrongError } from './auth.service';
 import { NewUserDto } from './dto/new-user.dto';
-import { UserDocument } from '../user/user.model';
+import { UserModel } from '../user/user.model';
 import { User } from '../user/user.interface';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './gaurds/http/auth.guard';
 
 function getUserData(
-  user: UserDocument,
+  user: UserModel,
 ): Omit<User, 'password' | 'salt'> & { _id: string } {
   const { email, name } = user;
   return { _id: user._id, name, email };
 }
+
+const cookieOptions = {
+  httpOnly: true,
+  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  secure: process.env.NODE_ENV === 'production',
+};
 
 @Controller('auth')
 export class AuthController {
@@ -41,12 +47,19 @@ export class AuthController {
     @Body() payload: SignInPayload,
     @Res() res: Response,
   ): Promise<void> {
-    const { user, accessToken, refreshToken } = await this.authService.signIn(
-      payload,
-    );
-
-    res.cookie('refreshToken', refreshToken);
-    res.send({ data: { user: getUserData(user) }, accessToken });
+    try {
+      const { user, accessToken, refreshToken } = await this.authService.signIn(
+        payload,
+      );
+      res.cookie('refreshToken', refreshToken, cookieOptions);
+      res.send({ data: { user: getUserData(user) }, accessToken });
+    } catch (e) {
+      if (e instanceof EmailOrPasswordWrongError) {
+        throw new BadRequestException();
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
   }
 
   @Post('sign-up')
@@ -59,7 +72,7 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await this.authService.signUp(
         payload,
       );
-      res.cookie('refreshToken', refreshToken);
+      res.cookie('refreshToken', refreshToken, cookieOptions);
       res.send({ data: { user: getUserData(user) }, accessToken });
     } catch (e) {
       if (e?.code === 11000) {

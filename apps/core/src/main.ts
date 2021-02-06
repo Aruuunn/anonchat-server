@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
     credentials: true,
-    origin: ['http://localhost:4200']
+    origin: ['http://localhost:4200'],
   });
   app.use(cookieParser());
   app.useGlobalInterceptors(new TransformOutputInterceptor());

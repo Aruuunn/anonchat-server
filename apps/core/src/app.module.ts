@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { CONNECTION_URI, mongoConfig } from './config/mongo.config';
 import { UserModule } from './user/user.module';
+import { MessageGateway } from './message.gateway';
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { UserModule } from './user/user.module';
     UserModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [MessageGateway],
 })
 export class AppModule {}
