@@ -1,9 +1,9 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { parse as parseCookies } from 'cookie';
 import { Socket } from 'socket.io';
-import { isValidJwt } from '../../../utils/is-valid-jwt';
-import { Events } from '../../../message.gateway';
-import { UnAuthorizedWsException } from '../../../common/websockets/ws-exception';
+import { isValidJwt } from '../../../../utils/is-valid-jwt';
+import { Events } from '../../../../common/gateways/message.gateway';
+import { UnAuthorizedWsException } from '../../../../common/websockets/exceptions/ws-exception';
 import { AuthGuard } from '../http/auth.guard';
 
 @Injectable()

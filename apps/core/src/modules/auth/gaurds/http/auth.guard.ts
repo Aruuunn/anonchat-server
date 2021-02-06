@@ -4,13 +4,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AccessTokenService } from '../../access-token.service';
+import { AccessTokenService } from '../../jwttoken/access-token.service';
 import { UserService } from '../../../user/user.service';
-import { isTruthy } from '../../../utils/is-truthy.util';
-import { RefreshTokenService } from '../../refresh-token.service';
-import { JwtPayload } from '../../jwt-payload';
-import { UserModel } from '../../../user/user.model';
-import { isValidJwt } from '../../../utils/is-valid-jwt';
+import { isTruthy } from '../../../../utils/is-truthy.util';
+import { RefreshTokenService } from '../../jwttoken/refresh-token.service';
+import { JwtPayload } from '../../interfaces/jwt-payload.interface';
+import { UserModel } from '../../../user/model/user.model';
+import { isValidJwt } from '../../../../utils/is-valid-jwt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

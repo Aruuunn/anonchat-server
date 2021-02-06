@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserModel } from './user.model';
-import { User } from './user.interface';
-import { BundleDto } from './bundle.dto';
-import { Bundle } from './bundle.interface';
-import { DeviceType } from './device-type.interface';
-import { BundleNotFoundError } from './Exceptions/bundle-not-found.error';
-import { UserNotFoundError } from './Exceptions/user-not-found.error';
+import { UserModel } from './model/user.model';
+import { User } from './interfaces/user.interface';
+import { BundleDto } from './dto/bundle.dto';
+import { Bundle } from './interfaces/bundle.interface';
+import { DeviceType } from './interfaces/device-type.interface';
+import { BundleNotFoundError } from './exceptions/bundle-not-found.error';
+import { UserNotFoundError } from './exceptions/user-not-found.error';
 
 @Injectable()
 export class UserService {
@@ -41,7 +41,7 @@ export class UserService {
   ): Promise<DeviceType<string>> {
     const user = await this.userModel.findOne({ _id: userId });
     if (!user) {
-      throw new UserNotFoundError('User Not Found');
+      throw new UserNotFoundError();
     }
     const bundle: Bundle<string> | undefined = user.bundles.find(
       (bundle) => bundle.registrationId === registrationId,

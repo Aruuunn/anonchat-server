@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { User } from './user.interface';
-import { Bundle } from './bundle.interface';
-import { BundleDto } from './bundle.dto';
+import { User } from '../interfaces/user.interface';
+import { Bundle } from '../interfaces/bundle.interface';
+import { BundleDto } from '../dto/bundle.dto';
 
 @Schema()
 export class UserModel extends Document implements User {

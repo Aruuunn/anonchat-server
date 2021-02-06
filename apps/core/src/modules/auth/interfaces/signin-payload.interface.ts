@@ -1,4 +1,4 @@
-import { User } from '../user/user.interface';
+import { User } from '../../user/interfaces/user.interface';
 import {
   IsEmail,
   IsNotEmpty,

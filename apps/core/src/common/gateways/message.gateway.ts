@@ -12,9 +12,9 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Client, Server } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
-import { WsGuard } from './auth/gaurds/websocket/ws.guard';
-import { UserModel } from './user/user.model';
-import { BadRequestWsException } from './common/websockets/ws-exception';
+import { WsGuard } from '../../modules/auth/gaurds/websocket/ws.guard';
+import { UserModel } from '../../modules/user/model/user.model';
+import { BadRequestWsException } from '../websockets/exceptions/ws-exception';
 
 export enum Events {
   CONNECT_USER = 'CONNECT_USER',

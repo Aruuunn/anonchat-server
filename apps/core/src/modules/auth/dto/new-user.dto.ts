@@ -1,6 +1,6 @@
-import { User } from '../../user/user.interface';
+import { User } from '../../user/interfaces/user.interface';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { SignInPayload } from '../signin-payload.interface';
+import { SignInPayload } from '../interfaces/signin-payload.interface';
 
 export class NewUserDto
   extends SignInPayload

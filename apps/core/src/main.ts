@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 
-import { AppModule } from './app.module';
-import { TransformOutputInterceptor } from './transform-output.interceptor';
+import { AppModule } from './modules/app.module';
+import { TransformOutputInterceptor } from './common/interceptors/transform-output.interceptor';
 
 const PORT = process.env.PORT || 8000;
 

@@ -11,25 +11,27 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { SignInPayload } from './signin-payload.interface';
-import { AuthService, EmailOrPasswordWrongError } from './auth.service';
+import { SignInPayload } from './interfaces/signin-payload.interface';
+import { AuthService } from './auth.service';
 import { NewUserDto } from './dto/new-user.dto';
-import { UserModel } from '../user/user.model';
-import { User } from '../user/user.interface';
+import { UserModel } from '../user/model/user.model';
+import { User } from '../user/interfaces/user.interface';
 import { AuthGuard } from './gaurds/http/auth.guard';
+import { cookieOptions } from '../../config/cookie.config';
+import { EmailOrPasswordWrongError } from './exceptions/email-password-wrong.error';
 
-function getUserData(
+function filterPropertiesOfUser(
   user: UserModel,
-): Omit<User, 'password' | 'salt'> & { _id: string } {
+): Omit<User, 'password' | 'salt' | 'bundles'> & { id: string } {
   const { email, name } = user;
-  return { _id: user._id, name, email };
+  return { id: user.id, name, email };
 }
 
-const cookieOptions = {
-  httpOnly: true,
-  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  secure: process.env.NODE_ENV === 'production',
-};
+function setCookie(res: Response, data: Record<string, string>): void {
+  for (const key of Object.keys(data)) {
+    res.cookie(key, data[key], cookieOptions);
+  }
+}
 
 @Controller('auth')
 export class AuthController {
@@ -51,8 +53,8 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await this.authService.signIn(
         payload,
       );
-      res.cookie('refreshToken', refreshToken, cookieOptions);
-      res.send({ data: { user: getUserData(user) }, accessToken });
+      setCookie(res, { refreshToken });
+      res.send({ data: { user: filterPropertiesOfUser(user) }, accessToken });
     } catch (e) {
       if (e instanceof EmailOrPasswordWrongError) {
         throw new BadRequestException();
@@ -72,8 +74,8 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await this.authService.signUp(
         payload,
       );
-      res.cookie('refreshToken', refreshToken, cookieOptions);
-      res.send({ data: { user: getUserData(user) }, accessToken });
+      setCookie(res, { refreshToken });
+      res.send({ data: { user: filterPropertiesOfUser(user) }, accessToken });
     } catch (e) {
       if (e?.code === 11000) {
         throw new BadRequestException(

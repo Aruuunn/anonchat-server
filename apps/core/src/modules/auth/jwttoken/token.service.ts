@@ -1,4 +1,4 @@
-import { JwtPayload } from './jwt-payload';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import * as jwt from 'jsonwebtoken';
 
 /**

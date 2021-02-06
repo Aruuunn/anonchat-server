@@ -14,15 +14,15 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/gaurds/http/auth.guard';
-import { BundleDto } from './bundle.dto';
+import { BundleDto } from './dto/bundle.dto';
 import { UserService } from './user.service';
-import { User } from './get-user.decorator';
-import { UserModel } from './user.model';
+import { User } from './decorators/get-user.decorator';
+import { UserModel } from './model/user.model';
 import { Response } from 'express';
-import { ObjectToArrayOnetimeprekeysPipe } from './object-to-array-onetimeprekeys.pipe';
-import { DeviceType } from './device-type.interface';
-import { BundleNotFoundError } from './Exceptions/bundle-not-found.error';
-import { UserNotFoundError } from './Exceptions/user-not-found.error';
+import { ObjectToArrayOnetimeprekeysPipe } from './pipes/object-to-array-onetimeprekeys.pipe';
+import { DeviceType } from './interfaces/device-type.interface';
+import { BundleNotFoundError } from './exceptions/bundle-not-found.error';
+import { UserNotFoundError } from './exceptions/user-not-found.error';
 
 async function httpHandleUserServiceThrownErrors<returnType>(
   fn: () => Promise<returnType>,
