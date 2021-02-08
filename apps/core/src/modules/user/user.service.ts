@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserModel } from './model/user.model';
-import { User } from './interfaces/user.interface';
-import { BundleDto } from './dto/bundle.dto';
+import { BundleDto } from '../auth/dto/bundle.dto';
 import { Bundle } from './interfaces/bundle.interface';
 import { DeviceType } from './interfaces/device-type.interface';
 import { BundleNotFoundError } from './exceptions/bundle-not-found.error';
 import { UserNotFoundError } from './exceptions/user-not-found.error';
+import { NewUserDto } from '../auth/dto/new-user.dto';
 
 @Injectable()
 export class UserService {
@@ -16,36 +16,28 @@ export class UserService {
     private userModel: Model<UserModel>,
   ) {}
 
-  async createNewUser(userData: User): Promise<UserModel> {
+  async createNewUser(userData: NewUserDto): Promise<UserModel> {
     return await this.userModel.create(userData);
   }
 
   async saveBundle(bundleData: BundleDto, user: UserModel): Promise<void> {
     await this.userModel.updateOne(
-      { email: user.email },
+      { id: user.id },
       {
-        bundles: [
-          ...user.bundles.filter(
-            (bundle) => bundle.registrationId !== bundleData.registrationId,
-          ),
-          bundleData,
-        ],
+        bundle: bundleData,
       },
     );
   }
 
   async fetchBundle(
     userId: string,
-    registrationId: number,
     requester: UserModel,
   ): Promise<DeviceType<string>> {
     const user = await this.userModel.findOne({ _id: userId });
     if (!user) {
       throw new UserNotFoundError();
     }
-    const bundle: Bundle<string> | undefined = user.bundles.find(
-      (bundle) => bundle.registrationId === registrationId,
-    );
+    const bundle: Bundle<string> | undefined = user.bundle;
 
     if (!bundle) {
       throw new BundleNotFoundError();
@@ -61,7 +53,7 @@ export class UserService {
     };
   }
 
-  async findUserUsingEmail(email: string): Promise<UserModel> {
-    return this.userModel.findOne({ email });
+  async findUserUsingId(id: string): Promise<UserModel> {
+    return this.userModel.findOne({ id });
   }
 }

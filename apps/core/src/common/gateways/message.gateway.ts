@@ -58,7 +58,7 @@ export class MessageGateway {
 
   @UseGuards(WsGuard)
   @SubscribeMessage(Events.CREATE_SELF_ROOM)
-  createSelfRoom(@ConnectedSocket() socket: Socket): void {
+  createSelfRoom(@ConnectedSocket() socket: Socket): string {
     const user = this.getUser(socket);
     this.logger.log(`created self room for user - ${user.id}`);
     socket.join(user.id);

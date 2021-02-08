@@ -42,9 +42,9 @@ export class WsGuard extends AuthGuard {
     const isRefreshTokenValid = await this.validateRefreshToken(
       context,
       async (user) => {
-        const email = user.email;
-        const newAccessToken = await this.accessTokenService.generateTokenUsingEmail(
-          email,
+        const id = user.id;
+        const newAccessToken = await this.accessTokenService.generateTokenUsingId(
+          id,
         );
         const socket = context.switchToWs().getClient<Socket>();
         socket.emit(Events.NEW_ACCESS_TOKEN, { accessToken: newAccessToken });

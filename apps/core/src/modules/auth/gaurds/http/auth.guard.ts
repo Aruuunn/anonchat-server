@@ -53,9 +53,9 @@ export class AuthGuard implements CanActivate {
     onValidated: (user: UserModel) => Promise<void>,
   ): Promise<boolean> {
     if (isTruthy(token)) {
-      const { email } = tokenValidator(token);
-      if (isTruthy(email)) {
-        const user = await this.userService.findUserUsingEmail(email);
+      const { id } = tokenValidator(token);
+      if (isTruthy(id)) {
+        const user = await this.userService.findUserUsingId(id);
         if (isTruthy(user)) {
           await onValidated(user);
           return true;
@@ -102,9 +102,9 @@ export class AuthGuard implements CanActivate {
     const isRefreshTokenValid = await this.validateRefreshToken(
       context,
       async (user) => {
-        const email = user.email;
-        const newAccessToken = this.accessTokenService.generateTokenUsingEmail(
-          email,
+        const id = user.id;
+        const newAccessToken = this.accessTokenService.generateTokenUsingId(
+          id,
         );
         this.attachNewPropertyToRequest('user', user, context);
         this.attachNewPropertyToRequest(

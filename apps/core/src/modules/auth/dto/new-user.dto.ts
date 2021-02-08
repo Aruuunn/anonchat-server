@@ -1,13 +1,9 @@
+import { IsNotEmpty, IsObject } from 'class-validator';
 import { User } from '../../user/interfaces/user.interface';
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { SignInPayload } from '../interfaces/signin-payload.interface';
+import { BundleDto } from './bundle.dto';
 
-export class NewUserDto
-  extends SignInPayload
-  implements Omit<User, 'password' | 'salt'> {
+export class NewUserDto implements Pick<User, 'bundle'> {
   @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  @MinLength(2)
-  name: string;
+  @IsObject()
+  bundle: BundleDto;
 }

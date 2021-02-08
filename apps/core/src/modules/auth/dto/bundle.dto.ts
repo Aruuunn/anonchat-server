@@ -2,7 +2,7 @@ import {
   Bundle,
   PreKeyType,
   SignedPublicPreKeyType,
-} from '../interfaces/bundle.interface';
+} from '../../user/interfaces/bundle.interface';
 import { IsArray, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 export class PreKeyTypeDto implements PreKeyType<string> {

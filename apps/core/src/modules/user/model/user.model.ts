@@ -5,20 +5,11 @@ import { Bundle } from '../interfaces/bundle.interface';
 
 @Schema()
 export class UserModel extends Document implements User {
-  @Prop()
-  name: string;
-
-  @Prop({ unique: true, required: true, index: true })
-  email: string;
-
-  @Prop({ required: true })
-  password: string;
-
-  @Prop({ required: true })
-  salt: string;
+  @Prop({ auto: true })
+  id: string;
 
   @Prop({ type: [Object] })
-  bundles: Bundle<string>[];
+  bundle: Bundle<string>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);

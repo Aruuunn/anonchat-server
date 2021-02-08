@@ -1,6 +1,6 @@
+import {Bundle} from './bundle.interface';
+
 export interface User {
-  name: string;
-  email: string;
-  password: string;
-  salt: string;
+  id: string;
+  bundle: Bundle<string>;
 }
