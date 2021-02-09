@@ -10,7 +10,6 @@ import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { NewUserDto } from './dto/new-user.dto';
 import { cookieOptions } from '../../config/cookie.config';
-import { ObjectToArrayOnetimeprekeysPipe } from './pipes/object-to-array-onetimeprekeys.pipe';
 
 function setCookie(res: Response, data: Record<string, string>): void {
   for (const key of Object.keys(data)) {
@@ -23,7 +22,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  @UsePipes(ObjectToArrayOnetimeprekeysPipe)
   @UsePipes(ValidationPipe)
   async register(
     @Body() payload: NewUserDto,

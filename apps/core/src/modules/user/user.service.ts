@@ -8,6 +8,7 @@ import { DeviceType } from './interfaces/device-type.interface';
 import { BundleNotFoundError } from './exceptions/bundle-not-found.error';
 import { UserNotFoundError } from './exceptions/user-not-found.error';
 import { NewUserDto } from '../auth/dto/new-user.dto';
+import { Message, MessageModel } from '../chat/models/message.model';
 
 @Injectable()
 export class UserService {
@@ -22,7 +23,7 @@ export class UserService {
 
   async saveBundle(bundleData: BundleDto, user: UserModel): Promise<void> {
     await this.userModel.updateOne(
-      { id: user.id },
+      { _id: user.id },
       {
         bundle: bundleData,
       },
@@ -54,6 +55,6 @@ export class UserService {
   }
 
   async findUserUsingId(id: string): Promise<UserModel> {
-    return this.userModel.findOne({ id });
+    return this.userModel.findOne({ _id: id });
   }
 }
