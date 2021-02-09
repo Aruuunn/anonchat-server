@@ -6,7 +6,7 @@ import { MessageModel, MessageSchema } from '../../chat/models/message.model';
 
 @Schema()
 export class UserModel extends mongoose.Document implements User {
-  @Prop({ type: [Object], required: true })
+  @Prop({ type: Object, required: true })
   bundle: Bundle<string>;
 
   // Not Optimal when ton messages are being sent
