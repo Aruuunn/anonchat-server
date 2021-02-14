@@ -7,6 +7,7 @@ import {Bundle} from './interfaces/bundle.interface';
 import {DeviceType} from './interfaces/device-type.interface';
 import {NewUserDto} from '../auth/dto/new-user.dto';
 import {isTruthy} from '../../utils/is-truthy.util';
+import {MessageInterface, MessageModel} from '../chat/models/message.model';
 
 @Injectable()
 export class UserService {
@@ -30,19 +31,29 @@ export class UserService {
         );
     }
 
+    async addNewMessageToNotDeliveredMessages(message: MessageModel, user: UserModel): Promise<UserModel> {
+
+        user.notDeliveredMessages.push(message);
+        await user.save();
+        //   await user.updateOne({
+        //     notDeliveredMessages: [...user.notDeliveredMessages, message]
+        //});
+        console.log({user, message});
+        return user;
+    }
+
     async fetchBundle(
-        requested: UserModel,
-        user: UserModel,
+        requestedUser: UserModel,
     ): Promise<DeviceType<string>> {
 
-        const bundle: Bundle<string> | undefined = requested.bundle;
+        const bundle: Bundle<string> | undefined = requestedUser.bundle;
 
         if (!isTruthy(bundle)) {
             throw new Error('Bundle is not defined');
         }
         const preKey = bundle.oneTimePreKeys.pop();
 
-        await this.saveBundle(bundle, requested);
+        await this.saveBundle(bundle, requestedUser);
 
         return {
             preKey,

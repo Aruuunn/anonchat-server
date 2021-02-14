@@ -7,15 +7,14 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-import {ObjectId} from 'mongoose';
 import {InvitationModel} from './invitation.model';
 import {AuthGuard} from '../auth/gaurds/http/auth.guard';
 import {InvitationService} from './invitation.service';
 import {User} from '../user/decorators/get-user.decorator';
 import {UserModel} from '../user/model/user.model';
-import {isUUID} from '@nestjs/common/utils/is-uuid';
 import {InvitationNotFoundError} from './exceptions/invitation-not-found.error';
 import {UserService} from '../user/user.service';
+import {hmacHash} from '../../utils/hmacHash';
 
 @Controller({path: 'invitation'})
 export class InvitationController {
@@ -28,6 +27,20 @@ export class InvitationController {
         return this.invitationService.newInvitation(user);
     }
 
+    @Get(':invitationId')
+    @UseGuards(AuthGuard)
+    async fetchDetails(
+        @Param('invitationId') invitationId: string,
+        @User() user: UserModel
+    ): Promise<{ fullName: string }> {
+        const invitation = await this.invitationService.fetchInvitationUsingId(invitationId);
+
+        if (invitation.creatorOfInvitation.id === user.id) {
+            throw new BadRequestException();
+        }
+        return {fullName: invitation.creatorOfInvitation.fullName};
+    }
+
     @Post(':invitationId/open')
     @UseGuards(AuthGuard)
     async openInvitation(
@@ -35,12 +48,11 @@ export class InvitationController {
             invitationId: string,
         @User() user: UserModel,
     ) {
-
         try {
             const chat = await this.invitationService.invitationOpened(user, invitationId);
-            const bundle = await this.userService.fetchBundle(chat.invitation.creatorOfInvitation, user);
-
-            return {chatId: chat.id, bundle};
+            const bundle = await this.userService.fetchBundle(chat.invitation.creatorOfInvitation);
+            const recipientId = hmacHash(chat.invitation.creatorOfInvitation.id);
+            return {chatId: chat.id, bundle, recipientId};
         } catch (e) {
             console.log(e);
             if (e instanceof InvitationNotFoundError) {

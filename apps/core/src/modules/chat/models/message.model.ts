@@ -1,18 +1,24 @@
 import * as mongoose from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 
-export interface Message {
-  ciphertext: string;
-  chatId: string;
+export interface MessageType {
+    type: number;
+    body?: string;
+    registrationId: number;
+}
+
+export interface MessageInterface {
+    message: MessageType;
+    chatId: string;
 }
 
 @Schema()
-export class MessageModel extends mongoose.Document implements Message {
-  @Prop()
-  ciphertext: string;
+export class MessageModel extends mongoose.Document implements MessageInterface {
+    @Prop({type: Object})
+    message: MessageType;
 
-  @Prop()
-  chatId: string;
+    @Prop()
+    chatId: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(MessageModel);

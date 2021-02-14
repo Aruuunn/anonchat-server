@@ -6,6 +6,7 @@ import {MongooseModule} from '@nestjs/mongoose';
 import {ChatModel, ChatSchema} from './models/chat.model';
 import {useFactoryFactory} from '../../common/use-factory-autopopulate.mongoose';
 import {UserModule} from '../user/user.module';
+import {MessageModel, MessageSchema} from './models/message.model';
 
 @Module({
     imports: [
@@ -13,6 +14,10 @@ import {UserModule} from '../user/user.module';
             {
                 name: ChatModel.name,
                 useFactory: useFactoryFactory(ChatSchema),
+            },
+            {
+                name: MessageModel.name,
+                useFactory: useFactoryFactory(MessageSchema),
             },
         ]),
         forwardRef(() => AuthModule),

@@ -37,6 +37,6 @@ export class AuthController {
         const invitation = await this.invitationService.newInvitation(user);
 
         setCookie(res, {refreshToken});
-        res.send({data: {invitationId: invitation.id}, accessToken});
+        res.send({data: {invitationId: invitation.id, id: user.id}, accessToken});
     }
 }

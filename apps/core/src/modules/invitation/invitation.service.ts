@@ -20,7 +20,7 @@ export class InvitationService {
     }
 
     async fetchInvitationUsingId(id: string): Promise<InvitationModel> {
-        return this.invitationModel.findOne({id});
+        return this.invitationModel.findOne({_id: id});
     }
 
     async newInvitation(creatorOfInvitation: UserModel): Promise<InvitationModel> {
@@ -37,7 +37,7 @@ export class InvitationService {
             throw new InvitationNotFoundError();
         }
 
-        if (invitation.creatorOfInvitation.id === openedBy) {
+        if (invitation.creatorOfInvitation.id === openedBy.id) {
             throw new Error('The Creator of Invitation Cannot Open the Invitation');
         }
         return await this.chatService.startNewChat(invitation, openedBy);
