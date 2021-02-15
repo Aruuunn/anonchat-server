@@ -31,10 +31,7 @@ export class WsGuard extends BaseGuard implements CanActivate {
 
     protected getRefreshToken(context: ExecutionContext): string | undefined {
         const request = this.getRequest(context);
-        const cookies =
-            typeof request?.cookies === 'string'
-                ? parseCookies(request?.cookies || '')
-                : request?.cookies;
+        const cookies = parseCookies(request?.headers?.cookie || '');
         const refreshToken = cookies?.refreshToken;
         return isValidJwt(refreshToken) ? refreshToken : undefined;
     }
@@ -47,6 +44,7 @@ export class WsGuard extends BaseGuard implements CanActivate {
                 this.attachNewPropertyToRequest('user', user, context);
             },
         );
+
         if (isAccessTokenValid) {
             return true;
         }
@@ -58,11 +56,11 @@ export class WsGuard extends BaseGuard implements CanActivate {
                 const newAccessToken = await this.accessTokenService.generateTokenUsingId(
                     id,
                 );
+                this.attachNewPropertyToRequest('user', user, context);
                 const socket = context.switchToWs().getClient<Socket>();
                 socket.emit(WsEvents.NEW_ACCESS_TOKEN, {accessToken: newAccessToken});
             },
         );
-
         if (isRefreshTokenValid) {
             return true;
         }

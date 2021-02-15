@@ -54,7 +54,6 @@ export class ChatGateway {
             user,
             payload,
         );
-        console.log(this.server.clients())
         this.server.to(userToSendMessage.id).emit(WsEvents.SEND_MESSAGE, {...payload, messageId: message.id});
 
         return {messageId: message.id};
@@ -98,7 +97,6 @@ export class ChatGateway {
         @MessageBody() payload: { chatId: string }
     ) {
         const {chatId} = payload;
-        console.log({payload});
         const recipientId = await this.chatService.getRecipientId(chatId, user);
 
         return {recipientId};

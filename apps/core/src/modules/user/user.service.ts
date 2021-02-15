@@ -22,7 +22,6 @@ export class UserService {
     }
 
     async saveBundle(bundleData: BundleDto, user: UserModel): Promise<void> {
-
         await this.userModel.updateOne(
             {_id: user.id},
             {
@@ -32,13 +31,8 @@ export class UserService {
     }
 
     async addNewMessageToNotDeliveredMessages(message: MessageModel, user: UserModel): Promise<UserModel> {
-
         user.notDeliveredMessages.push(message);
         await user.save();
-        //   await user.updateOne({
-        //     notDeliveredMessages: [...user.notDeliveredMessages, message]
-        //});
-        console.log({user, message});
         return user;
     }
 
