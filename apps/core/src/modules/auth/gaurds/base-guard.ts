@@ -5,6 +5,7 @@ import {UserService} from '../../user/user.service';
 import {JwtPayload} from '../interfaces/jwt-payload.interface';
 import {UserModel} from '../../user/model/user.model';
 import {isTruthy} from '../../../utils/is-truthy.util';
+import {TokenExpiredError} from 'jsonwebtoken';
 
 @Injectable()
 export abstract class BaseGuard {
@@ -15,7 +16,7 @@ export abstract class BaseGuard {
     ) {
     }
 
-    protected abstract  getRequest(context: ExecutionContext):any;
+    protected abstract getRequest(context: ExecutionContext): any;
 
     protected abstract getRefreshToken(context: ExecutionContext): string | undefined;
 
@@ -36,14 +37,23 @@ export abstract class BaseGuard {
         onValidated: (user: UserModel) => Promise<void>,
     ): Promise<boolean> {
         if (isTruthy(token)) {
-            const {id} = tokenValidator(token);
-            if (isTruthy(id)) {
-                const user = await this.userService.findUserUsingId(id);
-                if (isTruthy(user)) {
-                    await onValidated(user);
-                    return true;
+            try {
+                const {id} = tokenValidator(token);
+                if (isTruthy(id)) {
+                    const user = await this.userService.findUserUsingId(id);
+                    if (isTruthy(user)) {
+                        await onValidated(user);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                if (e instanceof TokenExpiredError) {
+                    return false;
+                } else {
+                    throw e;
                 }
             }
+
         }
         return false;
     }
