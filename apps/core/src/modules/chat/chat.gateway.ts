@@ -11,7 +11,7 @@ import {Server, Socket} from 'socket.io';
 import {ChatService} from './chat.service';
 import WsGuard from '../auth/gaurds/websocket/ws.guard';
 import {User} from '../../common/websockets/ws-get-user.decorator';
-import {UserModel} from '../user/model/user.model';
+import {UserDocument} from '../user/model/user.model';
 import {isTruthy} from '../../utils/is-truthy.util';
 import {MessageInterface} from './models/message.model';
 import {DeviceType} from '../user/interfaces/device-type.interface';
@@ -33,7 +33,7 @@ export class ChatGateway {
     @SubscribeMessage(WsEvents.CREATE_SELF_ROOM)
     async createRoomForSingleUser(
         @ConnectedSocket() socket: Socket,
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ): Promise<string> {
         console.assert(isTruthy(user.id), 'user Id has to be truthy!');
         socket.join(user.id);
@@ -45,7 +45,7 @@ export class ChatGateway {
     async sendMessage(
         @ConnectedSocket() socket: Socket,
         @MessageBody() payload: MessageInterface,
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ) {
         const {
             message,
@@ -64,7 +64,7 @@ export class ChatGateway {
     async messageReceived(
         @ConnectedSocket() socket: Socket,
         @MessageBody() payload: { messageId: string; chatId: string },
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ) {
         const {messageId, chatId} = payload;
         await this.chatService.onMessageDelivered(user, chatId, messageId);
@@ -74,7 +74,7 @@ export class ChatGateway {
     @SubscribeMessage(WsEvents.FETCH_NOT_DELIVERED_MESSAGES)
     async fetchNotDeliveredMessages(
         @ConnectedSocket() socket: Socket,
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ) {
         return user.notDeliveredMessages;
     }
@@ -83,7 +83,7 @@ export class ChatGateway {
     @SubscribeMessage(WsEvents.RECEIVED_ALL_NOT_DELIVERED_MESSAGES)
     async onReceivedAllNotDeliveredMessages(
         @ConnectedSocket() socket: Socket,
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ) {
         await this.chatService.clearAllNotDeliveredMessages(user);
         return {};
@@ -93,7 +93,7 @@ export class ChatGateway {
     @SubscribeMessage(WsEvents.FETCH_RECIPIENT_ID)
     async fetchRecipientId(
         @ConnectedSocket() socket: Socket,
-        @User() user: UserModel,
+        @User() user: UserDocument,
         @MessageBody() payload: { chatId: string }
     ) {
         const {chatId} = payload;
@@ -107,7 +107,7 @@ export class ChatGateway {
     async fetchKeyBundle(
         @ConnectedSocket() socket: Socket,
         @MessageBody() payload: { chatId: string },
-        @User() user: UserModel
+        @User() user: UserDocument
     ): Promise<DeviceType<string>> {
         const {chatId} = payload;
         return await this.chatService.fetchKeyBundleUsingChatId(chatId, user);

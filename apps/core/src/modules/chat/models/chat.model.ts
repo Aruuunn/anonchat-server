@@ -1,23 +1,24 @@
 import * as mongoose from 'mongoose';
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import {InvitationModel} from '../../invitation/invitation.model';
-import {UserModel} from '../../user/model/user.model';
+import {InvitationDocument} from '../../invitation/invitation.model';
+import {UserDocument} from '../../user/model/user.model';
 
 @Schema()
-export class ChatModel extends mongoose.Document {
+export class ChatDocument extends mongoose.Document {
     @Prop({
         type: mongoose.Schema.Types.ObjectId,
-        ref: InvitationModel.name,
+        ref: InvitationDocument.name,
         autopopulate: true
     })
-    invitation: InvitationModel;
+    invitation: InvitationDocument;
 
-    @Prop({type: mongoose.Schema.Types.ObjectId, ref: UserModel.name, autopopulate: true})
-    invitationAcceptedUser: UserModel;
+    @Prop({
+        type: mongoose.Schema.Types.ObjectId,
+        ref: UserDocument.name,
+        autopopulate: true
+    })
+    invitationAcceptedUser: UserDocument;
 
-    get creatorOfInvitation(): UserModel {
-        return this.invitation.creatorOfInvitation;
-    }
 }
 
-export const ChatSchema = SchemaFactory.createForClass(ChatModel);
+export const ChatSchema = SchemaFactory.createForClass(ChatDocument);

@@ -1,14 +1,13 @@
-import {
-    CanActivate,
-    ExecutionContext,
-    Injectable,
-    UnauthorizedException,
-} from '@nestjs/common';
+import {CanActivate, ExecutionContext, Injectable, UnauthorizedException,} from '@nestjs/common';
 import {AccessTokenService} from '../../jwttoken/access-token.service';
 import {BaseGuard} from '../base-guard';
-import {isValidJwt} from '../../../../utils/is-valid-jwt';
+import {validateJwt} from '../../../../utils/is-valid-jwt';
 import {RefreshTokenService} from '../../jwttoken/refresh-token.service';
 import {UserService} from '../../../user/user.service';
+import {Result} from 'neverthrow';
+import {Failure} from '../../../../common/failure.interface';
+import {TokenErrorsEnum} from '../../jwttoken/token.exceptions';
+
 
 @Injectable()
 export class AuthGuard extends BaseGuard implements CanActivate {
@@ -24,18 +23,18 @@ export class AuthGuard extends BaseGuard implements CanActivate {
         return context.switchToHttp().getRequest();
     }
 
-    protected getRefreshToken(context: ExecutionContext): string | undefined {
+    protected getRefreshToken(context: ExecutionContext): Result<string, Failure<TokenErrorsEnum.INVALID_JWT>> {
         const request = this.getRequest(context);
         const refreshToken = request?.cookies?.refreshToken;
-        return isValidJwt(refreshToken) ? refreshToken : undefined;
+        return validateJwt(refreshToken);
     }
 
-    protected getAccessToken(context: ExecutionContext): string | undefined {
+    protected getAccessToken(context: ExecutionContext): Result<string, Failure<TokenErrorsEnum.INVALID_JWT>> {
         const request = this.getRequest(context);
         const accessToken = request?.headers?.authorization
             ?.trim()
             ?.split(' ')?.[1];
-        return isValidJwt(accessToken) ? accessToken : undefined;
+        return validateJwt(accessToken);
     }
 
 
@@ -48,27 +47,8 @@ export class AuthGuard extends BaseGuard implements CanActivate {
         );
         if (isAccessTokenValid) {
             return true;
+        } else {
+            throw new UnauthorizedException();
         }
-        const isRefreshTokenValid = await this.validateRefreshToken(
-            context,
-            async (user) => {
-                const id = user.id;
-                const newAccessToken = this.accessTokenService.generateTokenUsingId(
-                    id,
-                );
-                this.attachNewPropertyToRequest('user', user, context);
-                this.attachNewPropertyToRequest(
-                    'newAccessToken',
-                    newAccessToken,
-                    context,
-                );
-            },
-        );
-
-        if (isRefreshTokenValid) {
-            return true;
-        }
-
-        throw new UnauthorizedException();
     }
 }

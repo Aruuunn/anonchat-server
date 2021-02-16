@@ -1,15 +1,15 @@
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
-import {User} from '../interfaces/user.interface';
+import {UserInterface} from '../interfaces/user.interface';
 import {Bundle} from '../interfaces/bundle.interface';
 import {MessageModel, MessageSchema} from '../../chat/models/message.model';
 
 @Schema()
-export class UserModel extends mongoose.Document implements User {
+export class UserDocument extends mongoose.Document implements UserInterface {
     @Prop({type: Object, required: true})
     bundle: Bundle<string>;
 
-    @Prop()
+    @Prop({required: true})
     fullName: string;
 
     // Not Optimal when ton messages are being sent
@@ -18,4 +18,4 @@ export class UserModel extends mongoose.Document implements User {
     notDeliveredMessages: MessageModel[];
 }
 
-export const UserSchema = SchemaFactory.createForClass(UserModel);
+export const UserSchema = SchemaFactory.createForClass(UserDocument);

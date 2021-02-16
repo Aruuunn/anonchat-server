@@ -13,7 +13,7 @@ export interface MessageInterface {
 }
 
 @Schema()
-export class MessageModel extends mongoose.Document implements MessageInterface {
+export class MessageDocument extends mongoose.Document implements MessageInterface {
     @Prop({type: Object})
     message: MessageType;
 
@@ -21,4 +21,4 @@ export class MessageModel extends mongoose.Document implements MessageInterface 
     chatId: string;
 }
 
-export const MessageSchema = SchemaFactory.createForClass(MessageModel);
+export const MessageSchema = SchemaFactory.createForClass(MessageDocument);

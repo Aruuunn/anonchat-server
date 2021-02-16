@@ -1,39 +1,44 @@
 import {
     BadRequestException,
     Controller,
+    ForbiddenException,
     Get,
     InternalServerErrorException,
     Param,
     Post,
     UseGuards,
 } from '@nestjs/common';
-import {InvitationModel} from './invitation.model';
 import {AuthGuard} from '../auth/gaurds/http/auth.guard';
 import {InvitationService} from './invitation.service';
 import {User} from '../user/decorators/get-user.decorator';
-import {UserModel} from '../user/model/user.model';
-import {InvitationNotFoundError} from './exceptions/invitation-not-found.error';
+import {UserDocument} from '../user/model/user.model';
 import {UserService} from '../user/user.service';
 import {hmacHash} from '../../utils/hmacHash';
+import {InvitationErrorsEnum} from './invitation.exceptions';
+import {ChatModel} from '../chat/models/chat.model';
+import {UserErrorsEnum} from '../user/user.exceptions';
+
 
 @Controller({path: 'invitation'})
 export class InvitationController {
     constructor(private invitationService: InvitationService, private userService: UserService) {
     }
 
-    @Post()
-    @UseGuards(AuthGuard)
-    newInvitation(@User() user: UserModel): Promise<InvitationModel> {
-        return this.invitationService.newInvitation(user);
-    }
-
     @Get(':invitationId')
     @UseGuards(AuthGuard)
     async fetchDetails(
         @Param('invitationId') invitationId: string,
-        @User() user: UserModel
+        @User() user: UserDocument
     ): Promise<{ fullName: string }> {
-        const invitation = await this.invitationService.fetchInvitationUsingId(invitationId);
+        const invitationResult = await this.invitationService.fetchInvitationUsingId(invitationId);
+
+        if (invitationResult.isErr()) {
+            if (invitationResult.error.type === InvitationErrorsEnum.INVITATION_NOT_FOUND) {
+                throw new BadRequestException();
+            }
+            throw new InternalServerErrorException();
+        }
+        const invitation = invitationResult.value;
 
         if (invitation.creatorOfInvitation.id === user.id) {
             throw new BadRequestException();
@@ -46,20 +51,36 @@ export class InvitationController {
     async openInvitation(
         @Param('invitationId')
             invitationId: string,
-        @User() user: UserModel,
+        @User() user: UserDocument,
     ) {
-        try {
-            const chat = await this.invitationService.invitationOpened(user, invitationId);
-            const bundle = await this.userService.fetchBundle(chat.invitation.creatorOfInvitation);
-            const recipientId = hmacHash(chat.invitation.creatorOfInvitation.id);
-            return {chatId: chat.id, bundle, recipientId};
-        } catch (e) {
-            console.log(e);
-            if (e instanceof InvitationNotFoundError) {
-                throw new BadRequestException('Invitation Not found');
-            } else {
-                throw new InternalServerErrorException();
+        const result = await this.invitationService.invitationOpened(user, invitationId);
+        if (result.isErr()) {
+            switch (result.error.type) {
+                case InvitationErrorsEnum.FORBIDDEN_TO_OPEN_INVITATION:
+                    throw new ForbiddenException();
+                case InvitationErrorsEnum.INVITATION_NOT_FOUND:
+                    throw new BadRequestException();
+                default:
+                    throw new InternalServerErrorException();
             }
         }
+        const chat: ChatModel = result.value;
+
+        const bundleResult = await this.userService.fetchBundle(chat.invitation.creatorOfInvitation);
+        if (bundleResult.isErr()) {
+            switch (bundleResult.error.type) {
+                case UserErrorsEnum.ERROR_UPDATING_USER:
+                default:
+                    throw new InternalServerErrorException();
+            }
+        }
+        const bundle = bundleResult.value;
+
+        if (typeof chat?.invitation?.creatorOfInvitation?.id !== 'string') {
+            throw new InternalServerErrorException();
+        }
+
+        const recipientId = hmacHash(chat.invitation.creatorOfInvitation.id);
+        return {chatId: chat.id, bundle, recipientId};
     }
 }

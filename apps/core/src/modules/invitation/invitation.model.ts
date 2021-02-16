@@ -1,17 +1,17 @@
 import * as mongoose from 'mongoose';
-import {UserModel} from '../user/model/user.model';
+import {UserDocument} from '../user/model/user.model';
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 
 @Schema()
-export class InvitationModel extends mongoose.Document {
+export class InvitationDocument extends mongoose.Document {
     @Prop({
         type: mongoose.Schema.Types.ObjectId,
-        ref: UserModel.name,
+        ref: UserDocument.name,
         required: true,
         unique: true,
         autopopulate: true
     })
-    creatorOfInvitation: UserModel;
+    creatorOfInvitation: UserDocument;
 }
 
-export const InvitationSchema = SchemaFactory.createForClass(InvitationModel);
+export const InvitationSchema = SchemaFactory.createForClass(InvitationDocument);

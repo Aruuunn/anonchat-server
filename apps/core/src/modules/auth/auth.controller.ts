@@ -1,21 +1,22 @@
 import {
     Body,
-    Controller,
+    Controller, InternalServerErrorException,
     Post,
     Res,
     UsePipes,
     ValidationPipe,
 } from '@nestjs/common';
-import {Response} from 'express';
+import {FastifyReply} from 'fastify';
 import {AuthService} from './auth.service';
 import {NewUserDto} from './dto/new-user.dto';
-import {cookieOptions} from '../../config/cookie.config';
+import {cookieOptions} from '../../config';
 import {InvitationService} from '../invitation/invitation.service';
+import {InvitationDocument} from '../invitation/invitation.model';
 
 
-function setCookie(res: Response, data: Record<string, string>): void {
+function setCookie(res: FastifyReply, data: Record<string, string>): void {
     for (const key of Object.keys(data)) {
-        res.cookie(key, data[key], cookieOptions);
+        res.setCookie(key, data[key], cookieOptions);
     }
 }
 
@@ -28,13 +29,23 @@ export class AuthController {
     @UsePipes(ValidationPipe)
     async register(
         @Body() payload: NewUserDto,
-        @Res() res: Response,
+        @Res() res: FastifyReply,
     ): Promise<void> {
-        const {user, accessToken, refreshToken} = await this.authService.register(
+        const result = await this.authService.register(
             payload,
         );
+        if (result.isErr()) {
+            throw new InternalServerErrorException();
+        }
+        const {accessToken, user, refreshToken} = result.value;
 
-        const invitation = await this.invitationService.newInvitation(user);
+        const invitationResult = await this.invitationService.newInvitation(user);
+
+        if (invitationResult.isErr()) {
+            throw new InternalServerErrorException();
+        }
+
+        const invitation = invitationResult.value;
 
         setCookie(res, {refreshToken});
         res.send({data: {invitationId: invitation.id, id: user.id}, accessToken});

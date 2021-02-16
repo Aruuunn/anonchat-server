@@ -1,13 +1,14 @@
-import {ExecutionContext, Injectable} from '@nestjs/common';
+import {ExecutionContext} from '@nestjs/common';
+import {Result} from 'neverthrow';
+import {UserService} from '../../user/user.service';
 import {AccessTokenService} from '../jwttoken/access-token.service';
 import {RefreshTokenService} from '../jwttoken/refresh-token.service';
-import {UserService} from '../../user/user.service';
 import {JwtPayload} from '../interfaces/jwt-payload.interface';
-import {UserModel} from '../../user/model/user.model';
-import {isTruthy} from '../../../utils/is-truthy.util';
-import {TokenExpiredError} from 'jsonwebtoken';
+import {UserDocument} from '../../user/model/user.model';
+import {Failure} from '../../../common/failure.interface';
+import {TokenErrorsEnum} from '../jwttoken/token.exceptions';
 
-@Injectable()
+
 export abstract class BaseGuard {
     protected constructor(
         public accessTokenService: AccessTokenService,
@@ -18,9 +19,9 @@ export abstract class BaseGuard {
 
     protected abstract getRequest(context: ExecutionContext): any;
 
-    protected abstract getRefreshToken(context: ExecutionContext): string | undefined;
+    protected abstract getRefreshToken(context: ExecutionContext): Result<string, Failure<TokenErrorsEnum.INVALID_JWT>>;
 
-    protected abstract getAccessToken(context: ExecutionContext): string | undefined;
+    protected abstract getAccessToken(context: ExecutionContext): Result<string, Failure<TokenErrorsEnum.INVALID_JWT>>
 
     attachNewPropertyToRequest(
         propertyName: string,
@@ -33,38 +34,34 @@ export abstract class BaseGuard {
 
     private async validateToken(
         token: string,
-        tokenValidator: (token: string) => JwtPayload | undefined,
-        onValidated: (user: UserModel) => Promise<void>,
+        tokenValidator: (token: string) => Result<JwtPayload, Failure<any>>,
+        onValidated: (user: UserDocument) => Promise<void>,
     ): Promise<boolean> {
-        if (isTruthy(token)) {
-            try {
-                const {id} = tokenValidator(token);
-                if (isTruthy(id)) {
-                    const user = await this.userService.findUserUsingId(id);
-                    if (isTruthy(user)) {
-                        await onValidated(user);
-                        return true;
-                    }
-                }
-            } catch (e) {
-                if (e instanceof TokenExpiredError) {
-                    return false;
-                } else {
-                    throw e;
-                }
+        const result = tokenValidator(token);
+        if (result.isErr()) {
+            return false;
+        } else {
+            const {id} = result.value;
+            const userResult = await this.userService.findUserUsingId(id);
+            if (userResult.isErr()) {
+                return false;
+            } else {
+                await onValidated(userResult.value);
+                return true;
             }
-
         }
-        return false;
     }
 
     public async validateAccessToken(
         context: ExecutionContext,
-        onValidated: (user: UserModel) => Promise<void>,
+        onValidated: (user: UserDocument) => Promise<void>,
     ): Promise<boolean> {
-        const accessToken = this.getAccessToken(context);
+        const accessTokenResult = this.getAccessToken(context);
+        if (accessTokenResult.isErr()) {
+            return false;
+        }
         return this.validateToken(
-            accessToken,
+            accessTokenResult.value,
             this.accessTokenService.verify.bind(this.accessTokenService),
             onValidated,
         );
@@ -72,14 +69,16 @@ export abstract class BaseGuard {
 
     public async validateRefreshToken(
         context: ExecutionContext,
-        onValidated: (user: UserModel) => Promise<void>,
+        onValidated: (user: UserDocument) => Promise<void>,
     ): Promise<boolean> {
-        const refreshToken = this.getRefreshToken(context);
+        const refreshTokenResult = this.getRefreshToken(context);
+        if (refreshTokenResult.isErr()) {
+            return false;
+        }
         return this.validateToken(
-            refreshToken,
+            refreshTokenResult.value,
             this.refreshTokenService.verify.bind(this.refreshTokenService),
             onValidated,
         );
     }
-
 }
