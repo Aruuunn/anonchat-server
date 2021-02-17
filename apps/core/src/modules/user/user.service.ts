@@ -8,11 +8,12 @@ import {BundleDto} from '../auth/dto/bundle.dto';
 import {Bundle} from './interfaces/bundle.interface';
 import {DeviceType} from './interfaces/device-type.interface';
 import {NewUserDto} from '../auth/dto/new-user.dto';
-import {MessageModel} from '../chat/models/message.model';
+import {MessageDocument} from '../chat/models/message.model';
 import {UserErrorFactory, UserErrorsEnum} from './user.exceptions';
 import {Failure} from '../../common/failure.interface';
 import {UserInterface} from './interfaces/user.interface';
 import {KeysEnum} from '../../common/keys-enum';
+import {isTruthy} from '../../utils/is-truthy.util';
 
 
 @Injectable()
@@ -24,7 +25,7 @@ export class UserService {
     }
 
     public async updateUser(user: UserDocument,
-                            fn: (user: UserDocument) => Omit<UserInterface, 'notDeliveredMessages'> & { notDeliveredMessages: MessageModel[] }
+                            fn: (user: UserDocument) => Omit<UserInterface, 'notDeliveredMessages'> & { notDeliveredMessages: MessageDocument[] }
     ): Promise<Result<UserDocument, Failure<UserErrorsEnum.ERROR_UPDATING_USER>>> {
         try {
             const newUserData = fn(user);
@@ -68,7 +69,7 @@ export class UserService {
         userId: string
     ): Promise<Result<UserDocument, Failure<UserErrorsEnum.USER_NOT_FOUND>>> {
         const user: UserDocument = await this.userModel.findOne({_id: userId});
-        if (!user) {
+        if (!isTruthy(user)) {
             return err(UserErrorFactory(UserErrorsEnum.USER_NOT_FOUND));
         }
         return ok(user);
@@ -78,8 +79,7 @@ export class UserService {
         userData: NewUserDto
     ): Promise<Result<UserDocument, Failure<UserErrorsEnum.ERROR_CREATING_USER>>> {
         try {
-            const newUser: UserDocument = new UserDocument(userData);
-            await newUser.save();
+            const newUser: UserDocument = await this.userModel.create(userData);
             return ok(newUser);
         } catch (e) {
             return err(UserErrorFactory(UserErrorsEnum.ERROR_CREATING_USER));
@@ -88,7 +88,7 @@ export class UserService {
 
 
     async addNewMessageToNotDeliveredMessages(
-        message: MessageModel,
+        message: MessageDocument,
         user: UserDocument
     ): Promise<Result<UserDocument, Failure<UserErrorsEnum.ERROR_UPDATING_USER>>> {
         const result = await this.updateUser(user, (user) => ({

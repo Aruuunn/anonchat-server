@@ -2,7 +2,7 @@ import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import {UserInterface} from '../interfaces/user.interface';
 import {Bundle} from '../interfaces/bundle.interface';
-import {MessageModel, MessageSchema} from '../../chat/models/message.model';
+import {MessageDocument, MessageSchema} from '../../chat/models/message.model';
 
 @Schema()
 export class UserDocument extends mongoose.Document implements UserInterface {
@@ -15,7 +15,7 @@ export class UserDocument extends mongoose.Document implements UserInterface {
     // Not Optimal when ton messages are being sent
     // @TODO Change Structure to scale for lot of messages
     @Prop({type: [MessageSchema], default: []})
-    notDeliveredMessages: MessageModel[];
+    notDeliveredMessages: MessageDocument[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserDocument);

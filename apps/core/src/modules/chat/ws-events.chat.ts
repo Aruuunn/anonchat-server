@@ -1,4 +1,4 @@
-export enum WsEvents {
+export enum ChatWsEvents {
     SEND_MESSAGE = 'SEND_MESSAGE',
     CREATE_SELF_ROOM = 'CREATE_SELF_ROOM',
     RECEIVED_MESSAGE = 'RECEIVED_MESSAGE',

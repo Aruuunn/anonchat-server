@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   REFRESH_TOKEN_EXPIRES_IN,
   REFRESH_TOKEN_SECRET,
-} from '../../../config/jwt.config';
+} from '../../../config';
 import { TokenService } from './token.service';
 
 @Injectable()

@@ -19,9 +19,9 @@ import {CommonErrorFactory, CommonErrorsEnum} from '../../common/common-errors';
 export class ChatService {
     constructor(
         @InjectModel(ChatDocument.name)
-        private chatRepository: Model<ChatDocument>,
+        private chatModel: Model<ChatDocument>,
         @InjectModel(MessageDocument.name)
-        private messageRepository: Model<MessageDocument>,
+        private messageModel: Model<MessageDocument>,
         private userService: UserService
     ) {
     }
@@ -31,7 +31,7 @@ export class ChatService {
         user: UserDocument,
     ): Promise<Result<ChatDocument, Failure<ChatErrorsEnum.ERROR_CREATING_CHAT>>> {
         try {
-            const chat: ChatDocument = await this.chatRepository.create({
+            const chat: ChatDocument = await this.chatModel.create({
                 invitation,
                 invitationAcceptedUser: user,
             });
@@ -44,7 +44,7 @@ export class ChatService {
     async fetchChatDetailsUsingChatId(
         chatId: string,
     ): Promise<Result<ChatDocument, Failure<ChatErrorsEnum.CHAT_NOT_FOUND>>> {
-        const chat: ChatDocument = await this.chatRepository.findOne({
+        const chat: ChatDocument = await this.chatModel.findOne({
             _id: chatId,
         });
         if (isTruthy(chat)) {
@@ -92,7 +92,7 @@ export class ChatService {
         message: MessageInterface
     ): Promise<Result<MessageDocument, Failure<ChatErrorsEnum.ERROR_CREATING_MESSAGE>>> {
         try {
-            const newMessage = await this.messageRepository.create(message);
+            const newMessage = await this.messageModel.create(message);
             return ok(newMessage);
         } catch (e) {
             return err(ChatErrorFactory(ChatErrorsEnum.ERROR_CREATING_MESSAGE));

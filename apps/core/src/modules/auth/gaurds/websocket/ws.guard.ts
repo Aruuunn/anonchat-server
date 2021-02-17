@@ -1,16 +1,15 @@
-import {Injectable, ExecutionContext, CanActivate} from '@nestjs/common';
+import {CanActivate, ExecutionContext, HttpStatus, Injectable} from '@nestjs/common';
 import {Socket} from 'socket.io';
 import {parse as parseCookies} from 'cookie';
-import {isValidJwt, validateJwt} from '../../../../utils/is-valid-jwt';
-import {UnAuthorizedWsException} from '../../../../common/websockets/exceptions/ws-exception';
-import {WsEvents} from '../../../chat/ws-events';
+import {validateJwt} from '../../../../utils/is-valid-jwt';
 import {BaseGuard} from '../base-guard';
 import {AccessTokenService} from '../../jwttoken/access-token.service';
 import {RefreshTokenService} from '../../jwttoken/refresh-token.service';
 import {UserService} from '../../../user/user.service';
-import {err, ok, Result} from 'neverthrow';
-import {TokenErrorFactory, TokenErrorsEnum} from '../../jwttoken/token.exceptions';
+import {Result} from 'neverthrow';
 import {Failure} from '../../../../common/failure.interface';
+import {WsException} from '@nestjs/websockets';
+import {AuthWsEvents} from '../../ws-events.auth';
 
 @Injectable()
 export class WsGuard extends BaseGuard implements CanActivate {
@@ -61,14 +60,20 @@ export class WsGuard extends BaseGuard implements CanActivate {
                 );
                 this.attachNewPropertyToRequest('user', user, context);
                 const socket = context.switchToWs().getClient<Socket>();
-                socket.emit(WsEvents.NEW_ACCESS_TOKEN, {accessToken: newAccessToken});
+                socket.emit(
+                    AuthWsEvents.NEW_ACCESS_TOKEN,
+                    {
+                        accessToken: newAccessToken
+                    }
+                );
             },
         );
+
         if (isRefreshTokenValid) {
             return true;
         }
 
-        throw new UnAuthorizedWsException();
+        throw new WsException({code: HttpStatus.UNAUTHORIZED,});
     }
 }
 

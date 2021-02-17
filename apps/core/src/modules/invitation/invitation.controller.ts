@@ -15,7 +15,7 @@ import {UserDocument} from '../user/model/user.model';
 import {UserService} from '../user/user.service';
 import {hmacHash} from '../../utils/hmacHash';
 import {InvitationErrorsEnum} from './invitation.exceptions';
-import {ChatModel} from '../chat/models/chat.model';
+import {ChatDocument} from '../chat/models/chat.model';
 import {UserErrorsEnum} from '../user/user.exceptions';
 
 
@@ -64,7 +64,7 @@ export class InvitationController {
                     throw new InternalServerErrorException();
             }
         }
-        const chat: ChatModel = result.value;
+        const chat: ChatDocument = result.value;
 
         const bundleResult = await this.userService.fetchBundle(chat.invitation.creatorOfInvitation);
         if (bundleResult.isErr()) {

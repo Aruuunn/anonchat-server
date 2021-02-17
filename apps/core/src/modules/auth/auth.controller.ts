@@ -14,12 +14,6 @@ import {InvitationService} from '../invitation/invitation.service';
 import {InvitationDocument} from '../invitation/invitation.model';
 
 
-function setCookie(res: FastifyReply, data: Record<string, string>): void {
-    for (const key of Object.keys(data)) {
-        res.setCookie(key, data[key], cookieOptions);
-    }
-}
-
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService, private invitationService: InvitationService) {
@@ -35,6 +29,7 @@ export class AuthController {
             payload,
         );
         if (result.isErr()) {
+            console.log(result.error);
             throw new InternalServerErrorException();
         }
         const {accessToken, user, refreshToken} = result.value;
@@ -42,12 +37,17 @@ export class AuthController {
         const invitationResult = await this.invitationService.newInvitation(user);
 
         if (invitationResult.isErr()) {
+            console.log(invitationResult.error);
             throw new InternalServerErrorException();
         }
 
         const invitation = invitationResult.value;
 
-        setCookie(res, {refreshToken});
-        res.send({data: {invitationId: invitation.id, id: user.id}, accessToken});
+        res.setCookie('refreshToken', refreshToken, {...cookieOptions, signed: false, path: '/'}).send({
+            data: {
+                invitationId: invitation.id,
+                id: user.id
+            }, accessToken
+        });
     }
 }

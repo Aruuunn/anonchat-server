@@ -34,6 +34,7 @@ export class AuthGuard extends BaseGuard implements CanActivate {
         const accessToken = request?.headers?.authorization
             ?.trim()
             ?.split(' ')?.[1];
+        console.log({accessToken});
         return validateJwt(accessToken);
     }
 
@@ -48,7 +49,7 @@ export class AuthGuard extends BaseGuard implements CanActivate {
         if (isAccessTokenValid) {
             return true;
         } else {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Access Token is Invalid');
         }
     }
 }
