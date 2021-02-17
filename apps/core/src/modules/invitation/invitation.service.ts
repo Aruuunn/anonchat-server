@@ -6,10 +6,11 @@ import {InvitationDocument} from './invitation.model';
 import {UserDocument} from '../user/model/user.model';
 import {UserService} from '../user/user.service';
 import {ChatService} from '../chat/chat.service';
-import {ChatModel} from '../chat/models/chat.model';
+import {ChatDocument} from '../chat/models/chat.model';
 import {isTruthy} from '../../utils/is-truthy.util';
 import {InvitationErrorFactory, InvitationErrorsEnum} from './invitation.exceptions';
 import {Failure} from '../../common/failure.interface';
+import {ChatErrorsEnum} from '../chat/chat.exceptions';
 
 @Injectable()
 export class InvitationService {
@@ -46,7 +47,7 @@ export class InvitationService {
     async invitationOpened(
         openedBy: UserDocument,
         invitationId: string,
-    ): Promise<Result<ChatModel, Failure<InvitationErrorsEnum.INVITATION_NOT_FOUND | InvitationErrorsEnum.FORBIDDEN_TO_OPEN_INVITATION>>> {
+    ): Promise<Result<ChatDocument, Failure<InvitationErrorsEnum.INVITATION_NOT_FOUND | InvitationErrorsEnum.FORBIDDEN_TO_OPEN_INVITATION | ChatErrorsEnum.ERROR_CREATING_CHAT>>> {
         const invitationResult = await this.fetchInvitationUsingId(invitationId);
 
         if (invitationResult.isErr()) {
@@ -56,7 +57,13 @@ export class InvitationService {
         if (invitation.creatorOfInvitation.id === openedBy.id) {
             return err(InvitationErrorFactory(InvitationErrorsEnum.FORBIDDEN_TO_OPEN_INVITATION));
         }
-        const chat = await this.chatService.startNewChat(invitation, openedBy);
+        const chatCreationResult = await this.chatService.startNewChat(invitation, openedBy);
+
+        if (chatCreationResult.isErr()) {
+            return err(chatCreationResult.error);
+        }
+
+        const chat = chatCreationResult.value;
         return ok(chat);
     }
 }

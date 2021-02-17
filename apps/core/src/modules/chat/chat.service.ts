@@ -13,6 +13,7 @@ import {ChatErrorFactory, ChatErrorsEnum} from './chat.exceptions';
 import {Failure} from '../../common/failure.interface';
 import {isTruthy} from '../../utils/is-truthy.util';
 import {UserErrorsEnum} from '../user/user.exceptions';
+import {CommonErrorFactory, CommonErrorsEnum} from '../../common/common-errors';
 
 @Injectable()
 export class ChatService {
@@ -61,7 +62,7 @@ export class ChatService {
         chatId: string,
         requester: UserDocument,
     ): Promise<Result<DeviceType<string>,
-        Failure<ChatErrorsEnum.CHAT_NOT_FOUND | ChatErrorsEnum.FORBIDDEN_TO_FETCH_BUNDLE | UserErrorsEnum.ERROR_UPDATING_USER>>> {
+        Failure<ChatErrorsEnum.CHAT_NOT_FOUND | CommonErrorsEnum.FORBIDDEN | UserErrorsEnum.ERROR_UPDATING_USER>>> {
         const chatFindResult = await this.fetchChatDetailsUsingChatId(chatId);
 
         if (chatFindResult.isErr()) {
@@ -71,7 +72,7 @@ export class ChatService {
         const chat = chatFindResult.value;
 
         if (!this.canAccessChatDetails(chat, requester)) {
-            return err(ChatErrorFactory(ChatErrorsEnum.FORBIDDEN_TO_FETCH_BUNDLE));
+            return err(CommonErrorFactory(CommonErrorsEnum.FORBIDDEN));
         }
 
         const userFetchBundleResult = await this.userService.fetchBundle(
@@ -91,8 +92,7 @@ export class ChatService {
         message: MessageInterface
     ): Promise<Result<MessageDocument, Failure<ChatErrorsEnum.ERROR_CREATING_MESSAGE>>> {
         try {
-            const newMessage = new MessageDocument(message);
-            await newMessage.save();
+            const newMessage = await this.messageRepository.create(message);
             return ok(newMessage);
         } catch (e) {
             return err(ChatErrorFactory(ChatErrorsEnum.ERROR_CREATING_MESSAGE));
@@ -108,7 +108,7 @@ export class ChatService {
     async getRecipientId(
         chatId: string,
         requester: UserDocument,
-    ): Promise<Result<string, Failure<ChatErrorsEnum.CHAT_NOT_FOUND | ChatErrorsEnum.FORBIDDEN_TO_FETCH_RECIPIENT_ID>>> {
+    ): Promise<Result<string, Failure<ChatErrorsEnum.CHAT_NOT_FOUND | CommonErrorsEnum.FORBIDDEN>>> {
         const chatFindResult = await this.fetchChatDetailsUsingChatId(chatId);
 
         if (chatFindResult.isErr()) {
@@ -118,7 +118,7 @@ export class ChatService {
         const chat = chatFindResult.value;
 
         if (!this.canAccessChatDetails(chat, requester)) {
-            return err(ChatErrorFactory(ChatErrorsEnum.FORBIDDEN_TO_FETCH_RECIPIENT_ID));
+            return err(CommonErrorFactory(CommonErrorsEnum.FORBIDDEN));
         }
 
         if (typeof chat?.invitation?.creatorOfInvitation?.id !== 'string') {
@@ -132,11 +132,12 @@ export class ChatService {
             return ok(hmacHash(chat?.invitation?.creatorOfInvitation?.id));
         }
     }
-    // @TODO refactor this
+
     async addNewMessageToNotDeliveredMessages(
         user: UserDocument,
         message: MessageInterface,
-    ): Promise<Result<{ message: MessageDocument; userToSendMessage: UserDocument }, Failure<ChatErrorsEnum.CHAT_NOT_FOUND>>> {
+    ): Promise<Result<{ message: MessageDocument; userToSendMessage: UserDocument },
+        Failure<ChatErrorsEnum.CHAT_NOT_FOUND | CommonErrorsEnum.FORBIDDEN | ChatErrorsEnum.ERROR_CREATING_MESSAGE | UserErrorsEnum.ERROR_UPDATING_USER>>> {
         const {chatId} = message;
 
         const chatFindResult = await this.fetchChatDetailsUsingChatId(chatId);
@@ -148,24 +149,39 @@ export class ChatService {
         const chat = chatFindResult.value;
 
         if (
-            chat.invitationAcceptedUser.id !== user.id &&
-            chat.invitation.creatorOfInvitation.id !== user.id
+            chat?.invitationAcceptedUser?.id !== user.id &&
+            chat?.invitation?.creatorOfInvitation?.id !== user.id
         ) {
-            throw new Error('Forbidden');
+            return err(CommonErrorFactory(CommonErrorsEnum.FORBIDDEN));
         }
-        const userToSendMessage =
-            chat.invitationAcceptedUser.id === user.id
-                ? chat.invitation.creatorOfInvitation
-                : chat.invitationAcceptedUser;
 
-        const newMessage = await this.messageRepository.create(message);
+        let userToSendMessage: UserDocument;
+        if (chat.invitationAcceptedUser.id === user.id) {
+            userToSendMessage = chat.invitation.creatorOfInvitation;
+        } else {
+            userToSendMessage = chat.invitationAcceptedUser;
+        }
 
-        return {
-            message:
-                (await this.userService.addNewMessageToNotDeliveredMessages(newMessage, userToSendMessage))
-                    .notDeliveredMessages[user.notDeliveredMessages.length]
-            , userToSendMessage
-        };
+        const newMessageCreationResult = await this.createNewMessage(message);
+
+        if (newMessageCreationResult.isErr()) {
+            return err(newMessageCreationResult.error);
+        }
+
+        const newMessage = newMessageCreationResult.value;
+
+        const addMessageToNotDeliveredMessagesResult =
+            await this.userService.addNewMessageToNotDeliveredMessages(newMessage, userToSendMessage);
+
+        if (addMessageToNotDeliveredMessagesResult.isErr()) {
+            return err(addMessageToNotDeliveredMessagesResult.error);
+        }
+
+        return ok(({
+                message: newMessage,
+                userToSendMessage,
+            })
+        );
     }
 
     async onMessageDelivered(
