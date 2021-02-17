@@ -1,6 +1,6 @@
 import {forwardRef, Module} from '@nestjs/common';
 import {MongooseModule} from '@nestjs/mongoose';
-import {InvitationModel, InvitationSchema} from './invitation.model';
+import {InvitationDocument, InvitationSchema} from './invitation.model';
 import {InvitationService} from './invitation.service';
 import {InvitationController} from './invitation.controller';
 import {AuthModule} from '../auth/auth.module';
@@ -12,7 +12,7 @@ import {UserModule} from '../user/user.module';
     imports: [
         MongooseModule.forFeatureAsync([
             {
-                name: InvitationModel.name,
+                name: InvitationDocument.name,
                 useFactory: useFactoryFactory(InvitationSchema),
             },
         ]),

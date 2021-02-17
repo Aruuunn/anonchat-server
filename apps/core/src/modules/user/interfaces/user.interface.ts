@@ -1,5 +1,8 @@
-import { Bundle } from './bundle.interface';
+import {Bundle} from './bundle.interface';
+import {MessageInterface} from '../../chat/models/message.model';
 
-export interface User {
-  bundle: Bundle<string>;
+export interface UserInterface {
+    bundle: Bundle<string>;
+    fullName: string;
+    notDeliveredMessages: MessageInterface[]
 }

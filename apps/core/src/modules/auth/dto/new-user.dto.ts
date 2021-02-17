@@ -1,8 +1,8 @@
 import {IsNotEmpty, IsObject, IsString, MaxLength, MinLength} from 'class-validator';
-import {User} from '../../user/interfaces/user.interface';
+import {UserInterface} from '../../user/interfaces/user.interface';
 import {BundleDto} from './bundle.dto';
 
-export class NewUserDto implements Pick<User, 'bundle'> {
+export class NewUserDto implements Pick<UserInterface, 'bundle'> {
     @IsNotEmpty()
     @IsObject()
     bundle: BundleDto;
