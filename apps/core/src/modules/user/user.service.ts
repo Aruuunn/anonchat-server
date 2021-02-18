@@ -28,7 +28,7 @@ export class UserService {
                             fn: (user: UserDocument) => Omit<UserInterface, 'notDeliveredMessages'> & { notDeliveredMessages: MessageDocument[] }
     ): Promise<Result<UserDocument, Failure<UserErrorsEnum.ERROR_UPDATING_USER>>> {
         try {
-            const newUserData = fn(user);
+            const newUserData: UserInterface = fn(user);
 
             const userPropertiesToUpdate: KeysEnum<UserInterface> = {
                 bundle: true,
@@ -38,7 +38,7 @@ export class UserService {
 
             for (let key of Object.keys(userPropertiesToUpdate)) {
                 if (newUserData[key] && userPropertiesToUpdate[key]) {
-                    this[key] = newUserData[key];
+                    user[key] = newUserData[key];
                 }
             }
 
@@ -99,6 +99,7 @@ export class UserService {
         }));
 
         if (result.isOk()) {
+            console.log(result.value, message);
             return ok(result.value);
         } else {
             return err(result.error);
