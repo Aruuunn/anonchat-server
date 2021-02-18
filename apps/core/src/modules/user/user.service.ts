@@ -99,7 +99,6 @@ export class UserService {
         }));
 
         if (result.isOk()) {
-            console.log(result.value, message);
             return ok(result.value);
         } else {
             return err(result.error);
