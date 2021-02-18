@@ -3,6 +3,7 @@ import {FastifyAdapter, NestFastifyApplication} from '@nestjs/platform-fastify';
 import fastifyCookie from 'fastify-cookie';
 import {AppModule} from './modules/app.module';
 import {TransformOutputInterceptor} from './common/interceptors/transform-output.interceptor';
+import {ALLOWED_ORIGINS} from './config';
 
 
 const PORT = process.env.PORT || 8000;
@@ -15,7 +16,7 @@ async function bootstrap() {
         }));
     app.enableCors({
         credentials: true,
-        origin: ['http://localhost:4200'],
+        origin: ALLOWED_ORIGINS,
     });
     await app.register(fastifyCookie);
 
