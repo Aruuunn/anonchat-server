@@ -1,10 +1,10 @@
 import {Injectable} from '@nestjs/common';
-import {Model} from 'mongoose';
+import {Connection, Model} from 'mongoose';
 import {ChatDocument} from './models/chat.model';
 import {UserDocument} from '../user/model/user.model';
 import {MessageDocument, MessageInterface} from './models/message.model';
 import {InvitationDocument} from '../invitation/invitation.model';
-import {InjectModel} from '@nestjs/mongoose';
+import {InjectConnection, InjectModel} from '@nestjs/mongoose';
 import {UserService} from '../user/user.service';
 import {DeviceType} from '../user/interfaces/device-type.interface';
 import {hmacHash} from '../../utils/hmacHash';
@@ -22,7 +22,9 @@ export class ChatService {
         private chatModel: Model<ChatDocument>,
         @InjectModel(MessageDocument.name)
         private messageModel: Model<MessageDocument>,
-        private userService: UserService
+        private userService: UserService,
+        @InjectConnection()
+        private connection: Connection
     ) {
     }
 
@@ -182,6 +184,23 @@ export class ChatService {
                 userToSendMessage,
             })
         );
+    }
+
+    async findChat(invitationId: string, invitationAcceptedUserId: string): Promise<Result<ChatDocument, Failure<ChatErrorsEnum.CHAT_NOT_FOUND>>> {
+        const chats: ChatDocument[] = (await this.connection.model(ChatDocument.name).find({
+            invitation: {
+                _id: invitationId
+            },
+            invitationAcceptedUser: {
+                _id: invitationAcceptedUserId
+            }
+        })) as ChatDocument[];
+
+        if (isTruthy(chats) && chats.length !== 0) {
+            return ok(chats[0]);
+        } else {
+            return err(ChatErrorFactory(ChatErrorsEnum.CHAT_NOT_FOUND));
+        }
     }
 
     async onMessageDelivered(

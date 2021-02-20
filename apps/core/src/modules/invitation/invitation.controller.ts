@@ -17,6 +17,7 @@ import {hmacHash} from '../../utils/hmacHash';
 import {InvitationErrorsEnum} from './invitation.exceptions';
 import {ChatDocument} from '../chat/models/chat.model';
 import {UserErrorsEnum} from '../user/user.exceptions';
+import {ChatErrorsEnum} from '../chat/chat.exceptions';
 
 
 @Controller({path: 'invitation'})
@@ -56,10 +57,12 @@ export class InvitationController {
         const result = await this.invitationService.invitationOpened(user, invitationId);
         if (result.isErr()) {
             switch (result.error.type) {
+                case ChatErrorsEnum.CHAT_ALREADY_EXIST:
+                    throw new BadRequestException('You have already accepted the invitation!');
+                case InvitationErrorsEnum.INVITATION_NOT_FOUND:
+                    throw new BadRequestException('Invitation not found');
                 case InvitationErrorsEnum.FORBIDDEN_TO_OPEN_INVITATION:
                     throw new ForbiddenException();
-                case InvitationErrorsEnum.INVITATION_NOT_FOUND:
-                    throw new BadRequestException();
                 default:
                     throw new InternalServerErrorException();
             }
