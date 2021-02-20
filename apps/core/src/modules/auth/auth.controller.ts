@@ -1,22 +1,33 @@
 import {
+    BadRequestException,
     Body,
-    Controller, InternalServerErrorException,
+    Controller,
+    Get,
+    InternalServerErrorException,
     Post,
-    Res,
+    Req,
+    Res, UnauthorizedException,
     UsePipes,
     ValidationPipe,
 } from '@nestjs/common';
-import {FastifyReply} from 'fastify';
+import {FastifyReply, FastifyRequest} from 'fastify';
 import {AuthService} from './auth.service';
 import {NewUserDto} from './dto/new-user.dto';
 import {cookieOptions} from '../../config';
 import {InvitationService} from '../invitation/invitation.service';
-import {InvitationDocument} from '../invitation/invitation.model';
+import {AccessTokenService} from './jwttoken/access-token.service';
+import {RefreshTokenService} from './jwttoken/refresh-token.service';
+import {isValidJwt} from '../../utils/is-valid-jwt';
+import {TokenErrorsEnum} from './jwttoken/token.exceptions';
 
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService, private invitationService: InvitationService) {
+    constructor(private authService: AuthService,
+                private invitationService: InvitationService,
+                private accessTokenService: AccessTokenService,
+                private refreshTokenService: RefreshTokenService,
+    ) {
     }
 
     @Post('register')
@@ -43,11 +54,34 @@ export class AuthController {
 
         const invitation = invitationResult.value;
 
-        res.setCookie('refreshToken', refreshToken, {...cookieOptions, signed: false, path: '/'}).send({
+        res.setCookie('refreshToken', refreshToken, cookieOptions).send({
             data: {
                 invitationId: invitation.id,
                 id: user.id
             }, accessToken
         });
+    }
+
+    @Get('access-token/refresh')
+    refreshAccessToken(@Req() req: FastifyRequest) {
+        const {refreshToken} = req.cookies;
+
+        if (!isValidJwt(refreshToken)) {
+            throw new BadRequestException();
+        }
+
+        const refreshTokenVerifyResult = this.refreshTokenService.verify(refreshToken);
+
+        if (refreshTokenVerifyResult.isErr()) {
+            if (refreshTokenVerifyResult.error.type === TokenErrorsEnum.TOKEN_EXPIRED) {
+                throw new UnauthorizedException();
+            } else {
+                throw new BadRequestException();
+            }
+        }
+        const {id} = refreshTokenVerifyResult.value;
+        const accessToken = this.accessTokenService.generateTokenUsingId(id);
+
+        return {accessToken};
     }
 }

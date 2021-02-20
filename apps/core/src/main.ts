@@ -9,7 +9,7 @@ import { TransformOutputInterceptor } from './common/interceptors/transform-outp
 import { ALLOWED_ORIGINS } from './config';
 
 const PORT = process.env.PORT || 8000;
-const HOST = process.env.YOUR_HOST || '0.0.0.0';
+const HOST = process.env.HOST || '0.0.0.0';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(

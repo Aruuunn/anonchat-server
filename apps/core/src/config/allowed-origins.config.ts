@@ -4,7 +4,7 @@ function getAllowedOrigins() {
     switch (process.env.NODE_ENV) {
         case Modes.DEVELOPMENT:
         case Modes.TESTING:
-            return ['http://localhost:4200'];
+            return ['http://localhost:4200', 'http://localhost:5000', 'http://192.168.43.27:4200'];
         case Modes.PRODUCTION:
             return [process.env.PRODUCTION_CLIENT_BASE_URL];
         default:
