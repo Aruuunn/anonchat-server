@@ -38,6 +38,7 @@
     "fastify": "^3.11.0",
     "fastify-cookie": "^5.1.0",
     "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.6.3",
     "mongoose": "^5.11.13",
     "mongoose-autopopulate": "^0.12.3",
     "neverthrow": "^4.1.0",
