@@ -19,6 +19,8 @@ async function bootstrap() {
       logger: false,
     }),
   );
+  app.setGlobalPrefix('/api');
+
   app.enableCors({
     credentials: true,
     origin: ALLOWED_ORIGINS,
