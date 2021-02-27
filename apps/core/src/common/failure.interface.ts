@@ -1,4 +1,4 @@
 export interface Failure<T> {
-    type: T,
-    message: string
+  type: T;
+  message: string;
 }

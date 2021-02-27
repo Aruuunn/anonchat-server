@@ -1,8 +1,5 @@
 import { TokenService } from './token.service';
-import {
-  ACCESS_TOKEN_EXPIRES_IN,
-  ACCESS_TOKEN_SECRET,
-} from '../../../config';
+import { ACCESS_TOKEN_EXPIRES_IN, ACCESS_TOKEN_SECRET } from '../../../config';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

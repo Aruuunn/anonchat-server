@@ -9,4 +9,3 @@ export const cookieOptions: CookieSerializeOptions = {
   path: '/',
   sameSite: 'strict',
 };
-

@@ -17,15 +17,13 @@ import { MessageDocument, MessageInterface } from './models/message.model';
 import { DeviceType } from '../user/interfaces/device-type.interface';
 import { ChatWsEvents } from './ws-events.chat';
 
-
 @WebSocketGateway(undefined, {
   cookie: false,
   origins: ALLOWED_ORIGINS,
   transports: ['websocket', 'polling'],
 })
 export class ChatGateway {
-  constructor(private chatService: ChatService) {
-  }
+  constructor(private chatService: ChatService) {}
 
   @WebSocketServer()
   private server: Server;
@@ -47,7 +45,10 @@ export class ChatGateway {
     @MessageBody() payload: MessageInterface,
     @User() user: UserDocument,
   ): Promise<{ messageId: string }> {
-    if (typeof payload?.chatId !== 'string' || typeof payload?.message !== 'object') {
+    if (
+      typeof payload?.chatId !== 'string' ||
+      typeof payload?.message !== 'object'
+    ) {
       throw new WsException({ code: HttpStatus.BAD_REQUEST });
     }
 
@@ -60,12 +61,11 @@ export class ChatGateway {
       throw new WsException('Error while sending message');
     }
 
-    const {
-      message,
-      userToSendMessage,
-    } = addNewMessageResult.value;
+    const { message, userToSendMessage } = addNewMessageResult.value;
 
-    this.server.to(userToSendMessage.id).emit(ChatWsEvents.SEND_MESSAGE, { ...payload, messageId: message.id });
+    this.server
+      .to(userToSendMessage.id)
+      .emit(ChatWsEvents.SEND_MESSAGE, { ...payload, messageId: message.id });
 
     return { messageId: message.id };
   }
@@ -78,7 +78,11 @@ export class ChatGateway {
     @User() user: UserDocument,
   ) {
     const { messageId, chatId } = payload;
-    const result = await this.chatService.onMessageDelivered(user, chatId, messageId);
+    const result = await this.chatService.onMessageDelivered(
+      user,
+      chatId,
+      messageId,
+    );
     if (result.isErr()) {
       throw new WsException('Error');
     }
@@ -113,7 +117,10 @@ export class ChatGateway {
     @MessageBody() payload: { chatId: string },
   ): Promise<{ recipientId: string }> {
     const { chatId } = payload;
-    const recipientIdFetchResult = await this.chatService.getRecipientId(chatId, user);
+    const recipientIdFetchResult = await this.chatService.getRecipientId(
+      chatId,
+      user,
+    );
 
     if (recipientIdFetchResult.isErr()) {
       throw new WsException('Error in fetching recipient Id');
@@ -130,7 +137,10 @@ export class ChatGateway {
     @User() user: UserDocument,
   ): Promise<DeviceType<string>> {
     const { chatId } = payload;
-    const result = await this.chatService.fetchKeyBundleUsingChatId(chatId, user);
+    const result = await this.chatService.fetchKeyBundleUsingChatId(
+      chatId,
+      user,
+    );
     if (result.isErr()) {
       throw new WsException({ message: 'Error in fetching key bundle' });
     }
