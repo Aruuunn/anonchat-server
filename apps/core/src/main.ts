@@ -7,6 +7,7 @@ import fastifyCookie from 'fastify-cookie';
 import { AppModule } from './modules/app.module';
 import { TransformOutputInterceptor } from './common/interceptors/transform-output.interceptor';
 import { ALLOWED_ORIGINS } from './config';
+import { resolve } from 'path';
 
 const PORT = process.env.PORT || 8000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -22,6 +23,11 @@ async function bootstrap() {
     credentials: true,
     origin: ALLOWED_ORIGINS,
   });
+  app.useStaticAssets({
+    root: resolve('./client-build/chat-app'),
+    etag: false,
+  });
+
   await app.register(fastifyCookie);
 
   app.useGlobalInterceptors(new TransformOutputInterceptor());
