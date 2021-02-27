@@ -19,7 +19,6 @@ async function bootstrap() {
       logger: false,
     }),
   );
-  app.setGlobalPrefix('/api');
 
   app.enableCors({
     credentials: true,
