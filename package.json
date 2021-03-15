@@ -37,6 +37,7 @@
     "dotenv": "^8.2.0",
     "fastify": "^3.11.0",
     "fastify-cookie": "^5.1.0",
+    "fastify-static": "^4.0.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.11.13",
