@@ -7,7 +7,8 @@ import * as fs from 'fs';
   path: '',
 })
 export class AppController {
-  @Get('app/*')
+
+  @Get('app*')
   getApp(@Res() res: FastifyReply): void {
     const stream = fs.createReadStream(
       resolve('./client-build/chat-app/index.html'),
