@@ -45,8 +45,8 @@ export class UserService {
           user[key] = newUserData[key];
         }
       }
-
-      await user.save();
+      //await user.save();
+      await user.update(user);
       return ok(user);
     } catch (e) {
       return err(UserErrorFactory(UserErrorsEnum.ERROR_UPDATING_USER));
@@ -119,9 +119,15 @@ export class UserService {
   > {
     const bundle: Bundle<string> = requestedUser.bundle;
 
-    const preKey = bundle.oneTimePreKeys.pop();
 
-    const result = await this.saveBundle(bundle, requestedUser);
+    const oneTimePreKeys = bundle.oneTimePreKeys;
+    const preKey = oneTimePreKeys.pop();
+
+    const result = await this.saveBundle(
+      { ...bundle, oneTimePreKeys },
+      requestedUser,
+    );
+
     if (result.isErr()) {
       return err(result.error);
     }
