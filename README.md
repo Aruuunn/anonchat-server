@@ -1,6 +1,10 @@
+# AnnonChat
 
+<img src="./sample/example1.png"/>
 
-## Run Locally
-1. Clone this repository
-2. npm install
-3. Create .env file in the root directory with some value for JWT_SECRET
+**AnonChat** is a end-to-end encrypted *(E2EE)* anonymous chatting web application.
+
+AnonChat is made using **Angular**, **Typescript** **sass**, **tailwindcss**, **Nestjs**, **Nodejs** and **Mongodb**.
+E2EE (end-to-end encryption) is acheived using Signal Protocol.
+
+This repository contains the backend project;
