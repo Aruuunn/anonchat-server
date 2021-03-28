@@ -38,7 +38,6 @@ export class AuthController {
   ): Promise<void> {
     const result = await this.authService.register(payload);
     if (result.isErr()) {
-      console.log(result.error);
       throw new InternalServerErrorException();
     }
     const { accessToken, user, refreshToken } = result.value;
@@ -46,7 +45,6 @@ export class AuthController {
     const invitationResult = await this.invitationService.newInvitation(user);
 
     if (invitationResult.isErr()) {
-      console.log(invitationResult.error);
       throw new InternalServerErrorException();
     }
 

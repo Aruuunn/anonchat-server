@@ -35,7 +35,6 @@ export class WsGuard extends BaseGuard implements CanActivate {
   ): Result<string, Failure<any>> {
     const socket = context.switchToWs().getClient<Socket>();
     const accessToken = socket?.handshake?.query?.accessToken;
-    console.log({ accessToken });
     return validateJwt(accessToken);
   }
 
@@ -45,7 +44,6 @@ export class WsGuard extends BaseGuard implements CanActivate {
     const request = this.getRequest(context);
     const cookies = parseCookies(request?.headers?.cookie || '');
     const refreshToken = cookies?.refreshToken;
-    console.log({ refreshToken });
     return validateJwt(refreshToken);
   }
 
