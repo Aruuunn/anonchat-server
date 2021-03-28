@@ -100,7 +100,7 @@ export class InvitationService {
     if (chatFindResult.isOk()) {
       return err(ChatErrorFactory(ChatErrorsEnum.CHAT_ALREADY_EXIST));
     } else {
-      console.log(chatFindResult.error);
+      //console.log(chatFindResult.error);
     }
 
     const chatCreationResult = await this.chatService.startNewChat(

@@ -60,7 +60,6 @@ export abstract class BaseGuard {
   ): Promise<boolean> {
     const accessTokenResult = this.getAccessToken(context);
     if (accessTokenResult.isErr()) {
-      console.log(accessTokenResult.error);
       return false;
     }
     return this.validateToken(
@@ -76,7 +75,6 @@ export abstract class BaseGuard {
   ): Promise<boolean> {
     const refreshTokenResult = this.getRefreshToken(context);
     if (refreshTokenResult.isErr()) {
-      console.log(refreshTokenResult.error);
       return false;
     }
     return this.validateToken(
