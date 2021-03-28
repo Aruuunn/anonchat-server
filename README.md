@@ -10,3 +10,5 @@ AnonChat is made using **Angular**, **Typescript** **sass**, **tailwindcss**, **
 end-to-end encryption *(E2EE)* is acheived using Signal Protocol.
 
 This repository contains the backend project;
+
+You can find the frontend project at [https://github.com/ArunMurugan78/anonchat-frontend](https://github.com/ArunMurugan78/anonchat-frontend)
